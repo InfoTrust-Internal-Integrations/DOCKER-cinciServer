@@ -27,7 +27,7 @@ services:
     restart: always
     env_file: .env
     depends_on:
-      - bakery-db
+      - bakery-db # <--- CHANGED: Now waits for Postgres, not MySQL
 
   datasource:
     image: cruibakeryonprem.azurecr.io/cloud/datasource:${UI_BAKERY_VERSION}
@@ -50,7 +50,6 @@ services:
     container_name: bakery_internal_db
     restart: always
     environment:
-      # Hardcoded credentials to ensure stability
       POSTGRES_USER: bakery
       POSTGRES_PASSWORD: bakery
       POSTGRES_DB: bakery
