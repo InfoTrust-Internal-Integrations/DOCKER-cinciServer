@@ -1,0 +1,67 @@
+version: "3.8"
+
+services:
+  gateway:
+    image: cruibakeryonprem.azurecr.io/cloud/gateway:${UI_BAKERY_VERSION}
+    restart: always
+    ports:
+      - "${UI_BAKERY_PORT:-3030}:3030" # Optional: remove if using Cloudflare
+    env_file: .env
+    depends_on:
+      - bakery-front
+      - workbench-front
+      - bakery-back
+
+  bakery-front:
+    image: cruibakeryonprem.azurecr.io/cloud/bakery-front:${UI_BAKERY_VERSION}
+    restart: always
+    env_file: .env
+
+  workbench-front:
+    image: cruibakeryonprem.azurecr.io/cloud/workbench-front:${UI_BAKERY_VERSION}
+    restart: always
+    env_file: .env
+
+  bakery-back:
+    image: cruibakeryonprem.azurecr.io/cloud/bakery-back:${UI_BAKERY_VERSION}
+    restart: always
+    env_file: .env
+    depends_on:
+      - bakery-db
+
+  datasource:
+    image: cruibakeryonprem.azurecr.io/cloud/datasource:${UI_BAKERY_VERSION}
+    restart: always
+    env_file: .env
+
+  python-runtime:
+    image: cruibakeryonprem.azurecr.io/cloud/python-runtime:${UI_BAKERY_VERSION}
+    restart: always
+    env_file: .env
+
+  automation:
+    image: cruibakeryonprem.azurecr.io/cloud/automation:${UI_BAKERY_VERSION}
+    restart: always
+    env_file: .env
+
+  bakery-db:
+    image: postgres:13-alpine
+    container_name: bakery_internal_db # Naming this to avoid confusion
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - /Users/Shared/workdir/uibakery/data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+# The Magic Block
+networks:
+  default:
+    name: one-network-to-rule-them-all
+    external: true
