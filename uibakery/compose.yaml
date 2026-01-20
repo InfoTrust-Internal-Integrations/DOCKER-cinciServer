@@ -5,7 +5,7 @@ services:
     image: cruibakeryonprem.azurecr.io/cloud/gateway:${UI_BAKERY_VERSION}
     restart: always
     ports:
-      - "${UI_BAKERY_PORT:-3030}:3030" # Optional: remove if using Cloudflare
+      - "${UI_BAKERY_PORT:-3030}:3030"
     env_file: .env
     depends_on:
       - bakery-front
@@ -27,6 +27,7 @@ services:
     restart: always
     env_file: .env
     depends_on:
+      - db         # <--- Critical: Waits for MySQL now
       - bakery-db
 
   datasource:
@@ -44,15 +45,36 @@ services:
     restart: always
     env_file: .env
 
+  # === 1. METADATA DB (MySQL) - The missing piece ===
+  db:
+    image: mysql:8.0
+    container_name: bakery_metadata_db
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_DATABASE: bakery
+      MYSQL_USER: bakery
+      MYSQL_PASSWORD: bakery
+      MYSQL_ROOT_PASSWORD: bakery
+    volumes:
+      # Host mount for MySQL data
+      - /Users/Shared/workdir/uibakery/mysql:/var/lib/mysql
+    networks:
+      default:
+        aliases:
+          - db # "bakery-back" looks for this specific hostname
+
+  # === 2. DATA DB (Postgres) - Your existing setup ===
   bakery-db:
     image: postgres:13-alpine
-    container_name: bakery_internal_db # Naming this to avoid confusion
+    container_name: bakery_internal_db
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
+      # Host mount for Postgres data
       - /Users/Shared/workdir/uibakery/data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
