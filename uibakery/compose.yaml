@@ -70,14 +70,14 @@ services:
     container_name: bakery_internal_db
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      # Replace variables with direct values to ensure they work
+      POSTGRES_USER: bakery
+      POSTGRES_PASSWORD: bakery
+      POSTGRES_DB: bakery
     volumes:
-      # Host mount for Postgres data
       - /Users/Shared/workdir/uibakery/data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U bakery"] # Updated to match hardcoded user
       interval: 5s
       timeout: 5s
       retries: 5
