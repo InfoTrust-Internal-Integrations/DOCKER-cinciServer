@@ -13,7 +13,7 @@ services:
       - "6626:8080" # Optional: remove this if you only use Cloudflare
     restart: always
     volumes: 
-      - /workdir/nocodb/nc:/usr/app/data
+      - /Users/Shared/workdir/nocodb/nc:/usr/app/data
 
   root_db: 
     image: postgres:16.6
@@ -30,7 +30,7 @@ services:
       test: "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""
       timeout: 2s
     volumes: 
-      - /workdir/nocodb/db:/var/lib/postgresql/data
+      - /Users/Shared/workdir/nocodb/db:/var/lib/postgresql/data
 
 # The Magic Block
 networks:
